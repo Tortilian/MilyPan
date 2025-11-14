@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stronka o Cwaniaku</title>
+<link rel="icon" type="image/png" href="https://media.licdn.com/dms/image/v2/D5603AQG_11_4UFaYWg/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1726947741811?e=2147483647&v=beta&t=TkuMGO3tVEe641PT1oKCF9wDVFo7vcCewuFK8WzMaGw">
+<style>
+body {
+    margin: 0;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    background: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+h1 { font-size: 2em; margin-bottom: 20px; color:black; text-align:center; }
+#zbyszek { width: 250px; height: 250px; border:1px solid #ccc; cursor:pointer; object-fit:cover; }
+.permission-box { position: fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:white; border:2px solid #ccc; padding:20px; box-shadow:0 4px 8px rgba(0,0,0,0.2); z-index:10000; text-align:center; }
+.permission-box h2 { margin-top:0; color:black; }
+.permission-box button { margin:5px; padding:8px 20px; font-size:0.9em; cursor:pointer; }
+.allow-btn { background:#4CAF50; color:white; border:none; }
+.deny-btn { background:#f44336; color:white; border:none; }
+.stop-button { margin-top:20px; padding:12px 30px; font-size:1.1em; background:#ff4444; color:white; border:none; cursor:pointer; font-weight:bold; }
+.stop-button:hover { background:#cc0000; }
+.popup-window { position:fixed; width:150px; height:150px; z-index:999; }
+.info-text { text-align:center; margin-top:10px; font-size:0.9em; color:#333; }
+.info-text a { color:#4CAF50; text-decoration:none; }
+.info-text a:hover { text-decoration:underline; }
+</style>
+</head>
+<body>
+
+<div id="permissionBox" class="permission-box" style="display:none;">
+<h2>Ta strona prosi o dostęp do:</h2>
+<p>• Otwierania nowych okien i muzyki</p>
+<button class="allow-btn" onclick="allowAccess()">Zezwól</button>
+<button class="deny-btn" onclick="denyAccess()">Blokuj</button>
+</div>
+
+<h1>Siema mordo, kliknij w Cwela lub 3x spację</h1>
+
+<img id="zbyszek" src="https://media.licdn.com/dms/image/v2/D5603AQG_11_4UFaYWg/profile-displayphoto-shrink_200_200/profile-displayphoto-shrink_200_200/0/1726947741811?e=2147483647&v=beta&t=TkuMGO3tVEe641PT1oKCF9wDVFo7vcCewuFK8WzMaGw" alt="Zbyszek Kucharski">
+
+<audio id="bgMusic" loop>
+  <source src="muza.mp3" type="audio/mpeg">
+</audio>
+<audio id="beepSound">
+  <source src="pisk.mp3" type="audio/mpeg">
+</audio>
+
+<button class="stop-button" onclick="stopEverything()">WYŁĄCZ WSZYSTKO</button>
+<div class="info-text">
+    Strona jest stworzona w celach humorystycznych i nie kradnie danych osobowych.<br>
+    <a href="https://discord.gg/j2NTzQy5jw" target="_blank">Jak chcesz wspomóc stronę to wbijaj na Discord</a>
+</div>
+
+<script>
+let spaceCount=0,isActive=false,popupWindows=[],moveIntervals=[],popupInterval,permissionGranted=false,userInteracted=false,popupWindowInterval;
+
+function showPermission(){ document.getElementById('permissionBox').style.display='block'; }
+function allowAccess(){ document.getElementById('permissionBox').style.display='none'; permissionGranted=true; userInteracted=true; startChaos(); }
+function denyAccess(){ document.getElementById('permissionBox').style.display='none'; alert('Dostęp zablokowany. Odśwież stronę aby spróbować ponownie.'); }
+
+function startChaos(){
+    if(isActive||!permissionGranted||!userInteracted) return;
+    isActive=true;
+    document.getElementById('zbyszek').style.transform='rotate(90deg)';
+    const music=document.getElementById('bgMusic');
+    music.volume=1.0; music.play().catch(e=>console.log('Kliknij gdziekolwiek, żeby muzyka zagrała'));
+    for(let i=0;i<8;i++) createPopup();
+    popupInterval=setInterval(()=>{for(let i=0;i<8;i++) createPopup();},200);
+    popupWindowInterval=setInterval(()=>{for(let i=0;i<20;i++) createPopupWindow();},200);
+}
+
+function createPopup(){
+    const popup=document.createElement('img');
+    popup.src='https://i1.sndcdn.com/artworks-2PLdSMq3UDyLNS8d-NxSdfA-t240x240.jpg';
+    popup.className='popup-window';
+    let randomX=Math.random()*(window.innerWidth-150), randomY=Math.random()*(window.innerHeight-150);
+    popup.style.left=randomX+'px'; popup.style.top=randomY+'px'; popup.style.position='fixed';
+    document.body.appendChild(popup); popupWindows.push(popup);
+    const beep=document.getElementById('beepSound'); beep.currentTime=0; beep.play().catch(e=>console.log('Kliknij gdziekolwiek, żeby pisk zagrał'));
+    let posX=randomX,posY=randomY,speedX=(Math.random()-0.5)*20,speedY=(Math.random()-0.5)*20;
+    const moveInterval=setInterval(()=>{posX+=speedX; posY+=speedY; if(posX<=0||posX>=window.innerWidth-150)speedX*=-1; if(posY<=0||posY>=window.innerHeight-150)speedY*=-1; popup.style.left=posX+'px'; popup.style.top=posY+'px';},50);
+    moveIntervals.push(moveInterval);
+}
+
+function createPopupWindow(){
+    const width=300,height=300;
+    let left=Math.random()*(window.screen.width-width), top=Math.random()*(window.screen.height-height);
+    const newWin=window.open("","_blank",`width=${width},height=${height},left=${left},top=${top}`);
+    if(!newWin) return;
+    newWin.document.body.style.background="white"; newWin.document.body.style.margin="0"; newWin.document.body.style.display="flex"; newWin.document.body.style.justifyContent="center"; newWin.document.body.style.alignItems="center";
+    const img=newWin.document.createElement("img"); img.src="https://i1.sndcdn.com/artworks-2PLdSMq3UDyLNS8d-NxSdfA-t240x240.jpg"; img.style.width="100%"; img.style.height="100%"; img.style.objectFit="cover"; newWin.document.body.appendChild(img);
+    let speedX=(Math.random()-0.5)*30,speedY=(Math.random()-0.5)*30;
+    const moveInterval=setInterval(()=>{left+=speedX; top+=speedY; if(left<=0||left>=window.screen.width-width)speedX*=-1; if(top<=0||top>=window.screen.height-height)speedY*=-1; try{newWin.moveTo(left,top);}catch(e){clearInterval(moveInterval);}},50);
+    setTimeout(()=>{clearInterval(moveInterval); if(!newWin.closed)newWin.close();},15000);
+}
+
+function stopEverything(){
+    isActive=false; spaceCount=0; permissionGranted=false; userInteracted=false;
+    document.getElementById('zbyszek').style.transform='rotate(0deg)';
+    if(popupInterval) clearInterval(popupInterval);
+    if(popupWindowInterval) clearInterval(popupWindowInterval);
+    moveIntervals.forEach(i=>clearInterval(i)); moveIntervals=[]; popupWindows.forEach(p=>p.remove()); popupWindows=[];
+    const music=document.getElementById('bgMusic'); music.pause(); music.currentTime=0;
+    const beep=document.getElementById('beepSound'); beep.pause(); beep.currentTime=0;
+}
+
+document.getElementById('zbyszek').addEventListener('click',()=>{if(!permissionGranted) showPermission();});
+document.addEventListener('keydown',(e)=>{if(e.code==='Space'){spaceCount++; if(spaceCount===3){if(!permissionGranted) showPermission(); spaceCount=0;} setTimeout(()=>{spaceCount=0;},1000);}});
+</script>
+</body>
+</html>
